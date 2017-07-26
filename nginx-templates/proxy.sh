@@ -22,8 +22,8 @@ function createSelfSignedCert {
         openssl req \
             -batch \
             -x509 -nodes -days 365 -newkey rsa:2048 \
-            -keyout /etc/letsencrypt/live/${domain}/privkey.pem \
-            -out /etc/letsencrypt/live/${domain}/fullchain.pem \
+            -keyout /etc/nginx/certs/${domain}/privkey.pem \
+            -out /etc/nginx/certs/${domain}/fullchain.pem \
             -subj "/C=$country/ST=$state/L=$location/O=$organization/OU=$departamento/CN=$domain1/emailAddress=$emailAddress" \
             -config /tmp/openssl.cnf
 

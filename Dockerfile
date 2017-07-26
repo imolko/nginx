@@ -11,7 +11,7 @@ RUN echo "America/Caracas" > /etc/timezone && dpkg-reconfigure -f noninteractive
 # Necesitamos unzip y curl
 RUN set -x \
 	&& apt-get update \
-	&& apt-get install -y curl unzip --no-install-recommends \
+	&& apt-get install -y curl unzip openssl --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 

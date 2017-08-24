@@ -22,7 +22,7 @@ RUN mkdir -p /scripts.d
 COPY nginx-templates/ /nginx-templates
 
 # Copiamos los snippets
-COPY snippets/ /etc/nginx/snippets
+COPY snippets /etc/nginx/
 
 # Preparamos letsencript
 RUN mkdir -p /usr/share/nginx/letsencrypt/.well-known/acme-challenge

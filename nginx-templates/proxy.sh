@@ -43,12 +43,12 @@ function generateDHParams {
         if [[ $PREGEN_HASH != $CURRENT_HASH ]]; then
             # There is already a dhparam, and it's not the default
             echo "Custom dhparam.pem file found, generation skipped"
-            exit 0
+            return 0
         fi
 
         if [[ -f $GEN_LOCKFILE ]]; then
             # Generation is already in progress
-            exit 0
+            return 0
         fi
     fi
 

@@ -18,8 +18,14 @@ RUN set -x \
 # creamos la carpeta para los scripts.
 RUN mkdir -p /scripts.d
 
-#templates
+# Copiamos los templates.
 COPY nginx-templates/ /nginx-templates
+
+# Copiamos los snippets
+COPY snippets/ /etc/nginx/snippets
+
+# Preparamos letsencript
+RUN mkdir -p /usr/share/nginx/letsencrypt/.well-known/acme-challenge
 
 # El dhparam por default.
 COPY dhparam.pem.default /dhparam.pem.default
@@ -28,7 +34,8 @@ COPY dhparam.pem.default /dhparam.pem.default
 COPY imolko-entrypoint.sh /imolko-entrypoint.sh
 
 # Volumen para certificados y dhparam
-VOLUME ["/etc/ngnix/certs", "/etc/nginx/dhparam"]
+#       Para certificados.  Para el dhparams,     Para el changelle
+VOLUME ["/etc/nginx/certs", "/etc/nginx/dhparam", "/usr/share/nginx/letsencrypt"]
 
 ENTRYPOINT ["/imolko-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

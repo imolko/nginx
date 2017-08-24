@@ -22,7 +22,7 @@ RUN mkdir -p /scripts.d
 COPY nginx-templates/ /nginx-templates
 
 # Copiamos los snippets
-COPY snippets /etc/nginx/
+COPY snippets/ /snippets
 
 # Preparamos letsencript
 RUN mkdir -p /usr/share/nginx/letsencrypt/.well-known/acme-challenge
@@ -38,4 +38,5 @@ COPY imolko-entrypoint.sh /imolko-entrypoint.sh
 VOLUME ["/etc/nginx/certs", "/etc/nginx/dhparam", "/usr/share/nginx/letsencrypt"]
 
 ENTRYPOINT ["/imolko-entrypoint.sh"]
+
 CMD ["nginx", "-g", "daemon off;"]

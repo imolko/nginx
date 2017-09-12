@@ -1,32 +1,32 @@
 # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
 # scheme used to connect to this server
-map $http_x_forwarded_proto $proxy_x_forwarded_proto {
-  default $http_x_forwarded_proto;
-  ''      $scheme;
+map \$http_x_forwarded_proto \$proxy_x_forwarded_proto {
+  default \$http_x_forwarded_proto;
+  ''      \$scheme;
 }
 # If we receive Upgrade, set Connection to "upgrade"; otherwise, delete any
 # Connection header that may have been passed to this server
-map $http_upgrade $proxy_connection {
+map \$http_upgrade \$proxy_connection {
   default upgrade;
   '' close;
 }
-map $http_x_forwarded_host $proxy_x_forwarded_host {
-    default $http_x_forwarded_host;
-    '' $host;
+map \$http_x_forwarded_host \$proxy_x_forwarded_host {
+    default \$http_x_forwarded_host;
+    '' \$host;
 }
-map $http_x_forwarded_port $proxy_x_forwarded_port {
-    default $http_x_forwarded_port;
-    '' $server_port;
+map \$http_x_forwarded_port \$proxy_x_forwarded_port {
+    default \$http_x_forwarded_port;
+    '' \$server_port;
 }
-map $http_x_forwarded_server $proxy_x_forwarded_server {
-    default $http_x_forwarded_server;
-    '' $host;
+map \$http_x_forwarded_server \$proxy_x_forwarded_server {
+    default \$http_x_forwarded_server;
+    '' \$host;
 }
 gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
-log_format vhost '$host $remote_addr - $remote_user [$time_local] '
-                 '"$request" $status $body_bytes_sent '
-                 '"$http_referer" "$http_user_agent"';
+log_format vhost '\$host \$remote_addr - \$remote_user [\$time_local] '
+                 '"\$request" \$status \$body_bytes_sent '
+                 '"\$http_referer" "\$http_user_agent"';
 
 access_log off;
 
@@ -35,22 +35,22 @@ proxy_http_version 1.1;
 proxy_buffering off;
 
 # Leemos el host del http header.
-proxy_set_header Host $http_host;
-proxy_set_header Upgrade $http_upgrade;
-proxy_set_header Connection $proxy_connection;
+proxy_set_header Host \$http_host;
+proxy_set_header Upgrade \$http_upgrade;
+proxy_set_header Connection \$proxy_connection;
 
 # Establecemos X-Real-IP
-proxy_set_header X-Real-IP $remote_addr;
-proxy_set_header X-Real-Port $server_port;
-proxy_set_header X-Real-Scheme $scheme;
-proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Real-IP \$remote_addr;
+proxy_set_header X-Real-Port \$server_port;
+proxy_set_header X-Real-Scheme \$scheme;
+proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 
 # configuramos los Forwarded
-proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
-proxy_set_header X-Forwarded-Proto  $proxy_x_forwarded_proto;
-proxy_set_header X-Forwarded-Host   $proxy_x_forwarded_host;
-proxy_set_header X-Forwarded-Server $proxy_x_forwarded_server;
-proxy_set_header X-Forwarded-Port   $proxy_x_forwarded_port;
+proxy_set_header X-Forwarded-For    \$proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto  \$proxy_x_forwarded_proto;
+proxy_set_header X-Forwarded-Host   \$proxy_x_forwarded_host;
+proxy_set_header X-Forwarded-Server \$proxy_x_forwarded_server;
+proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port;
 
 # No queremos soportar la forma nueva de Forwarded
 # proxy_set_header Forwarded "";
@@ -63,7 +63,7 @@ server {
     listen 80;
 
     # En un ambiente con virtualbox se deberia desactivar
-    sendfile ${sendfile_switch};
+    sendfile ${sendfile_switch:-on};
 
     access_log /var/log/nginx/access.log vhost;
     root /usr/share/nginx/zenkius/${domain}/zenkiu;
@@ -75,7 +75,7 @@ server {
     #gzip_types text/plain text/css application/json application/javascript application/x-javascript text/javascript text/xml application/xml application/rss+xml application/atom+xml application/rdf+xml;
 
     # Configuramos las imagenes y los videos y los recursos.
-    location ~* .+\.(asf|asx|wax|wmv|wmx|avi|bmp|class|divx|doc|docx|eot|exe|gif|gz|gzip|ico|jpg|jpeg|jpe|mdb|mid|midi|mov|qt|mp3|m4a|mp4|m4v|mpeg|mpg|mpe|mpp|otf|odb|odc|odf|odg|odp|ods|odt|ogg|pdf|png|pot|pps|ppt|pptx|ra|ram|svg|svgz|swf|tar|tif|tiff|ttf|ttc|wav|wma|wri|xla|xls|xlsx|xlt|xlw|zip)$ {
+    location ~* .+\.(asf|asx|wax|wmv|wmx|avi|bmp|class|divx|doc|docx|eot|exe|gif|gz|gzip|ico|jpg|jpeg|jpe|mdb|mid|midi|mov|qt|mp3|m4a|mp4|m4v|mpeg|mpg|mpe|mpp|otf|odb|odc|odf|odg|odp|ods|odt|ogg|pdf|png|pot|pps|ppt|pptx|ra|ram|svg|svgz|swf|tar|tif|tiff|ttf|ttc|wav|wma|wri|xla|xls|xlsx|xlt|xlw|zip)\$ {
         add_header "X-IOSType" "Imagen";
         add_header Pragma "public";
         add_header Cache-Control "max-age=31535999, public, must-revalidate, proxy-revalidate";
@@ -84,7 +84,7 @@ server {
     }
 
     # Configuramos el cache para los css, js, y json, y htc.
-    location ~* .+\.(css|js|htc|json)$ {
+    location ~* .+\.(css|js|htc|json)\$ {
         add_header "X-IOSType" "Scripts";
         add_header Pragma "public";
         add_header Cache-Control "max-age=31535999, public, must-revalidate, proxy-revalidate";
@@ -93,7 +93,7 @@ server {
     }
 
     # configuramos el cache para los documentos, html, xml, etc
-    location ~* .+\.(html|htm|rtf|rtx|svg|svgz|txt|xsd|xsl|xml)$ {
+    location ~* .+\.(html|htm|rtf|rtx|svg|svgz|txt|xsd|xsl|xml)\$ {
         add_header "X-IOSType" "Html";
         add_header Pragma "public";
         add_header Cache-Control "max-age=3600, public, must-revalidate, proxy-revalidate";

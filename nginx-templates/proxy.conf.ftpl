@@ -1,50 +1,50 @@
 # If we receive X-Forwarded-Proto, pass it through; otherwise, pass along the
 # scheme used to connect to this server
-map $http_x_forwarded_proto $proxy_x_forwarded_proto {
-  default $http_x_forwarded_proto;
-  ''      $scheme;
+map \$http_x_forwarded_proto \$proxy_x_forwarded_proto {
+  default \$http_x_forwarded_proto;
+  ''      \$scheme;
 }
 # If we receive Upgrade, set Connection to "upgrade"; otherwise, delete any
 # Connection header that may have been passed to this server
-map $http_upgrade $proxy_connection {
+map \$http_upgrade \$proxy_connection {
   default upgrade;
   '' close;
 }
-map $http_x_forwarded_host $proxy_x_forwarded_host {
-    default $http_x_forwarded_host;
-    '' $host;
+map \$http_x_forwarded_host \$proxy_x_forwarded_host {
+    default \$http_x_forwarded_host;
+    '' \$host;
 }
-map $http_x_forwarded_port $proxy_x_forwarded_port {
-    default $http_x_forwarded_port;
-    '' $server_port;
+map \$http_x_forwarded_port \$proxy_x_forwarded_port {
+    default \$http_x_forwarded_port;
+    '' \$server_port;
 }
-map $http_x_forwarded_server $proxy_x_forwarded_server {
-    default $http_x_forwarded_server;
-    '' $host;
+map \$http_x_forwarded_server \$proxy_x_forwarded_server {
+    default \$http_x_forwarded_server;
+    '' \$host;
 }
 gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-log_format vhost '$host $remote_addr - $remote_user [$time_local] '
-                 '"$request" $status $body_bytes_sent '
-                 '"$http_referer" "$http_user_agent"';
+log_format vhost '\$host \$remote_addr - \$remote_user [\$time_local] '
+                 '"\$request" \$status \$body_bytes_sent '
+                 '"\$http_referer" "\$http_user_agent"';
 access_log off;
 # HTTP 1.1 support
 proxy_http_version 1.1;
 proxy_buffering off;
 # Leemos el host del http header.
-proxy_set_header Host $http_host;
-proxy_set_header Upgrade $http_upgrade;
-proxy_set_header Connection $proxy_connection;
+proxy_set_header Host \$http_host;
+proxy_set_header Upgrade \$http_upgrade;
+proxy_set_header Connection \$proxy_connection;
 # Establecemos X-Real-IP
-proxy_set_header X-Real-IP $remote_addr;
-proxy_set_header X-Real-Port $server_port;
-proxy_set_header X-Real-Scheme $scheme;
-proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Real-IP \$remote_addr;
+proxy_set_header X-Real-Port \$server_port;
+proxy_set_header X-Real-Scheme \$scheme;
+proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 # configuramos los Forwarded
-proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
-proxy_set_header X-Forwarded-Proto  $proxy_x_forwarded_proto;
-proxy_set_header X-Forwarded-Host   $proxy_x_forwarded_host;
-proxy_set_header X-Forwarded-Server $proxy_x_forwarded_server;
-proxy_set_header X-Forwarded-Port   $proxy_x_forwarded_port;
+proxy_set_header X-Forwarded-For    \$proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto  \$proxy_x_forwarded_proto;
+proxy_set_header X-Forwarded-Host   \$proxy_x_forwarded_host;
+proxy_set_header X-Forwarded-Server \$proxy_x_forwarded_server;
+proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port;
 # No queremos soportar la forma nueva de Forwarded
 proxy_set_header Forwarded "";
 # Configuramos maximo de archivos
@@ -55,7 +55,7 @@ client_max_body_size 2m;
 #proxy_temp_path  /tmp/proxy-media-cache/tmp;
 #proxy_cache_min_uses 5;
 #proxy_cache_methods GET HEAD POST;
-#proxy_no_cache $http_authorization;
+#proxy_no_cache \$http_authorization;
 
 
 server {  
@@ -68,7 +68,7 @@ server {
     include /snippets/letsencrypt.conf;
 
     location / {
-        return 301 https://$host$request_uri;
+        return 301 https://\$host\$request_uri;
     }    
 }
 
@@ -92,12 +92,12 @@ server {
 
     # Manejo de aurora-ws
     location  ^~ /aurora-ws/ {
-        set $aurora_server imk-aurora;
-        proxy_pass http://$aurora_server:8080;
+        set \$aurora_server imk-aurora;
+        proxy_pass http://\$aurora_server:8080;
 
         # Creeo que esto es dedido a que spring 3 nesesita X-Forwarde-Host tenga host:server
         # Asi que se coloco esto y se elimino los forwardes, pendiente con las actualizaciones de spring.
-        proxy_set_header X-Forwarded-Host $host:$server_port;
+        proxy_set_header X-Forwarded-Host \$host:\$server_port;
         proxy_set_header Forwarded "";
 
         # Para debug
@@ -112,34 +112,34 @@ server {
         break;
     }
 
-    location ~ "^/media/(.*)$" {
-        set $aurora_server imk-aurora;
+    location ~ "^/media/(.*)\$" {
+        set \$aurora_server imk-aurora;
 
-        proxy_pass http://$aurora_server:8080/aurora-ws/media/$1;
+        proxy_pass http://\$aurora_server:8080/aurora-ws/media/\$1;
 
         # Por los momentos los medias se procesaran en aurora.
-        proxy_set_header X-Forwarded-Host $host:$server_port;
+        proxy_set_header X-Forwarded-Host \$host:\$server_port;
         proxy_set_header Forwarded "";
 
         break;
     }
 
     # manejo de imaginary
-    location ~ "^/~media/(?<operation>[^\/]+)/(?<resourcepath>[^\?]+)(\?(?<querystring>.*))?$" {
-        set $imaginary_server imk-imaginary;
+    location ~ "^/~media/(?<operation>[^\/]+)/(?<resourcepath>[^\?]+)(\?(?<querystring>.*))?\$" {
+        set \$imaginary_server imk-imaginary;
         # Para debugger        
-        add_header X-uri "http://$imaginary_server:9000/$operation?url=https://${domain}/media/$resourcepath&$querystring";
+        add_header X-uri "http://\$imaginary_server:9000/\$operation?url=https://${domain}/media/\$resourcepath&\$querystring";
 
         # Hacemos el proxy pass.
-        proxy_pass http://$imaginary_server:9000/$operation?url=https://${domain}/media/$resourcepath&$querystring;
+        proxy_pass http://\$imaginary_server:9000/\$operation?url=https://${domain}/media/\$resourcepath&\$querystring;
         
         break;
     }
 
     # Manejo de billing
     location  ^~ /billing2/ {
-        set $billing_server imk-billing;
-        proxy_pass http://$billing_server:8080;
+        set \$billing_server imk-billing;
+        proxy_pass http://\$billing_server:8080;
 
         # Activamos gzip para algunos mimes.
         gzip on;
@@ -150,8 +150,8 @@ server {
 
     # Manejo de cancerbero
     location ^~ /cancerbero-war/ {
-        set $cancerbero_server imk-cancerbero;
-        proxy_pass   http://$cancerbero_server:8080;
+        set \$cancerbero_server imk-cancerbero;
+        proxy_pass   http://\$cancerbero_server:8080;
 
         # Activamos gzip para algunos mimes.
         gzip on;
@@ -162,14 +162,14 @@ server {
     }
 
     location = /zenkiu {
-        rewrite ^(/zenkiu)$ $1/ permanent;
+        rewrite ^(/zenkiu)\$ \$1/ permanent;
     }
 
-    location ~ ^/zenkiu/(.*)$ {
+    location ~ ^/zenkiu/(.*)\$ {
         access_log off;
 
-        set $zenkiu_server imk-zenkiu;
-        proxy_pass   http://$zenkiu_server/$1;
+        set \$zenkiu_server imk-zenkiu;
+        proxy_pass   http://\$zenkiu_server/\$1;
 
         # Activamos gzip.
         gzip on;
@@ -181,9 +181,9 @@ server {
     location / {
         access_log off;
 
-        set $wpnginx_server imk-wpnginx;
+        set \$wpnginx_server imk-wpnginx;
 
-        proxy_pass   http://$wpnginx_server;
+        proxy_pass   http://\$wpnginx_server;
         # No queremos soportar la forma nueva de Forwarded
         # proxy_set_header Forwarded "";
         # Activamos gzip para algunos mimes.
@@ -207,8 +207,8 @@ server {
     resolver 127.0.0.11 ipv6=off;
 
     location / {
-        set $wpnginx_server imk-wpnginx;
-        proxy_pass   http://$wpnginx_server;
+        set \$wpnginx_server imk-wpnginx;
+        proxy_pass   http://\$wpnginx_server;
         # No queremos soportar la forma nueva de Forwarded
         # proxy_set_header Forwarded "";
         # Activamos gzip para algunos mimes.
@@ -233,8 +233,8 @@ server {
     resolver 127.0.0.11 ipv6=off;
 
     location / {
-        set $wpnginx_server imk-wpnginx;
-        proxy_pass   http://$wpnginx_server;
+        set \$wpnginx_server imk-wpnginx;
+        proxy_pass   http://\$wpnginx_server;
         # No queremos soportar la forma nueva de Forwarded
         # proxy_set_header Forwarded "";
         # Activamos gzip para algunos mimes.

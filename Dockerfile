@@ -1,19 +1,25 @@
-FROM nginx:1.13
+FROM nginx:1.13-alpine
 
 MAINTAINER Yohany Flores <yohanyflores@gmail.com>
 
 LABEL com.imolko.group=imolko
 LABEL com.imolko.type=base
 
-#configuramos la zona horaria
-RUN echo "America/Caracas" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
+ARG TZ=America/Caracas
+ENV TZ ${TZ}
 
-# Necesitamos unzip y curl
-RUN set -x \
-	&& apt-get update \
-	&& apt-get install -y curl unzip openssl certbot --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk --no-cache --update add tzdata \
+    && cp "/usr/share/zoneinfo/${TZ}" /etc/localtime \
+	&& echo "${TZ}" >  /etc/timezone \
+    && apk del tzdata \
+    && rm -rf /var/cache/apk/*
 
+RUN apk --no-cache --update add \
+		openssl \
+		ca-certificates \
+    	curl \
+		unzip \
+	&& rm -rf /var/cache/apk/*
 
 # creamos la carpeta para los scripts.
 RUN mkdir -p /scripts.d
@@ -31,12 +37,11 @@ RUN mkdir -p /usr/share/nginx/letsencrypt/.well-known/acme-challenge
 COPY dhparam.pem.default /dhparam.pem.default
 
 # Nuevo Entry point
-COPY imolko-entrypoint.sh /imolko-entrypoint.sh
+COPY imolko-entrypoint.alpine.sh /imolko-entrypoint.sh
 
 # Volumen para certificados y dhparam
 #       Para certificados.  Para el dhparams,     Para el changelle
-VOLUME ["/etc/nginx/certs", "/etc/nginx/dhparam", "/usr/share/nginx/letsencrypt"]
-
+# VOLUME ["/etc/nginx/certs", "/etc/nginx/dhparam", "/usr/share/nginx/letsencrypt"]
 ENTRYPOINT ["/imolko-entrypoint.sh"]
 
 CMD ["nginx", "-g", "daemon off;"]

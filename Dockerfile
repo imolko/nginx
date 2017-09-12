@@ -41,7 +41,7 @@ RUN mkdir -p /usr/share/nginx/letsencrypt/.well-known/acme-challenge
 COPY dhparam.pem.default /dhparam.pem.default
 
 # Nuevo Entry point
-COPY imolko-entrypoint.alpine.sh /imolko-entrypoint.sh
+COPY imolko-entrypoint.sh /imolko-entrypoint.sh
 
 # Volumen para certificados y dhparam
 #       Para certificados.  Para el dhparams,     Para el changelle

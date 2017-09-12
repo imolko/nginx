@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+# Nuevo manejador de plantillas con shell script y variables.
+faketpl() {
+    local _line=""
+
+    while IFS= read -r _line
+    do
+        eval echo '"'"${_line}"'"'
+    done
+}
+
 set -e
 
 if [ "${1:0:1}" = '-' ]; then

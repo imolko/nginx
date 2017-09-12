@@ -15,6 +15,7 @@ RUN apk --no-cache --update add tzdata \
     && rm -rf /var/cache/apk/*
 
 RUN apk --no-cache --update add \
+		bash \
 		openssl \
 		ca-certificates \
     	curl \

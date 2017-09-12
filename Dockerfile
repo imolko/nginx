@@ -21,6 +21,10 @@ RUN apk --no-cache --update add \
 		unzip \
 	&& rm -rf /var/cache/apk/*
 
+# Copiamos el certificado.
+RUN  wget -O /usr/local/share/ca-certificates/cacert.crt https://imolko-dev.nyc3.digitaloceanspaces.com/certs/certs/ca-dev/cacert.crt \
+    && update-ca-certificates
+
 # creamos la carpeta para los scripts.
 RUN mkdir -p /scripts.d
 

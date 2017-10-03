@@ -186,9 +186,9 @@ server {
     location / {
         access_log off;
 
-        set \$wpnginx_server imk-wpnginx;
+        set \$tuvoti_server imk-tuvoti;
 
-        proxy_pass   http://\$wpnginx_server;
+        proxy_pass   http://\$tuvoti_server;
         # No queremos soportar la forma nueva de Forwarded
         # proxy_set_header Forwarded \"\";
         # Activamos gzip para algunos mimes.

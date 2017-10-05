@@ -101,7 +101,10 @@ server {
         proxy_set_header X-Forwarded-Proto  \$proxy_x_forwarded_proto;
         proxy_set_header X-Forwarded-Host   \$host:\$server_port;
         proxy_set_header X-Forwarded-Server \$proxy_x_forwarded_server;
-        proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port;        
+        proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port;      
+        if ($scheme = https) {
+            proxy_set_header X-Forwarded-Ssl on;
+        }
         proxy_set_header Forwarded \"\";
         
 

@@ -22,6 +22,13 @@ map \$http_x_forwarded_server \$proxy_x_forwarded_server {
     default \$http_x_forwarded_server;
     '' \$host;
 }
+
+# Set appropriate X-Forwarded-Ssl header
+map \$scheme \$proxy_x_forwarded_ssl {
+  default off;
+  https on;
+}
+
 gzip_types text/plain text/css application/javascript application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 log_format vhost '\$host \$remote_addr - \$remote_user [\$time_local] '
                  '\"\$request\" \$status \$body_bytes_sent '
@@ -44,6 +51,7 @@ proxy_set_header X-Forwarded-For    \$proxy_add_x_forwarded_for;
 proxy_set_header X-Forwarded-Proto  \$proxy_x_forwarded_proto;
 proxy_set_header X-Forwarded-Host   \$proxy_x_forwarded_host;
 proxy_set_header X-Forwarded-Server \$proxy_x_forwarded_server;
+proxy_set_header X-Forwarded-Ssl    \$proxy_x_forwarded_ssl;
 proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port;
 # No queremos soportar la forma nueva de Forwarded
 proxy_set_header Forwarded \"\";
@@ -101,12 +109,8 @@ server {
         proxy_set_header X-Forwarded-Proto  \$proxy_x_forwarded_proto;
         proxy_set_header X-Forwarded-Host   \$host:\$server_port;
         proxy_set_header X-Forwarded-Server \$proxy_x_forwarded_server;
-        proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port;      
-        if ($scheme = https) {
-            proxy_set_header X-Forwarded-Ssl on;
-        }
-        proxy_set_header Forwarded \"\";
-        
+        proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port; 
+        proxy_set_header X-Forwarded-Ssl    \$proxy_x_forwarded_ssl;
 
         # Para debug
         proxy_connect_timeout       600;

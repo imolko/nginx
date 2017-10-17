@@ -124,29 +124,79 @@ server {
         break;
     }
 
-    location ~ \"^/media/(.*)\$\" {
+    location ^~ /media/ {
         set \$aurora_server imk-aurora;
+        proxy_pass http://\$aurora_server:8080/aurora-ws;
 
-        proxy_pass http://\$aurora_server:8080/aurora-ws/media/\$1;
+        # Creeo que esto es dedido a que spring 3 nesesita X-Forwarde-Host tenga host:server
+        # Asi que se coloco esto y se elimino los forwardes, pendiente con las actualizaciones de spring.
+        proxy_set_header X-Forwarded-For    \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto  \$proxy_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Host   \$host:\$server_port;
+        proxy_set_header X-Forwarded-Server \$proxy_x_forwarded_server;
+        proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port; 
+        proxy_set_header X-Forwarded-Ssl    \$proxy_x_forwarded_ssl;
 
-        # Por los momentos los medias se procesaran en aurora.
-        proxy_set_header X-Forwarded-Host \$host:\$server_port;
-        proxy_set_header Forwarded \"\";
-
+        # Para debug
+        proxy_connect_timeout       600;
+        proxy_send_timeout          600;
+        proxy_read_timeout          600;
+        send_timeout                600;
+        # Activamos gzip para algunos mimes.
+        gzip on;
+        gzip_types text/plain text/css application/json application/javascript application/x-javascript text/javascript text/xml application/xml application/rss+xml application/atom+xml application/rdf+xml;
+        # No se que haga esto, yo quiero que deje de procesar los rewrites de wordpress.
         break;
     }
+
+    location ^~ /~media/ {
+        set \$tuvoti_media_server imk-tuvoti-media;
+        proxy_pass http://\$tuvoti_media_server:39876;
+
+        # Creeo que esto es dedido a que spring 3 nesesita X-Forwarde-Host tenga host:server
+        # Asi que se coloco esto y se elimino los forwardes, pendiente con las actualizaciones de spring.
+        proxy_set_header X-Forwarded-For    \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto  \$proxy_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Host   \$host:\$server_port;
+        proxy_set_header X-Forwarded-Server \$proxy_x_forwarded_server;
+        proxy_set_header X-Forwarded-Port   \$proxy_x_forwarded_port; 
+        proxy_set_header X-Forwarded-Ssl    \$proxy_x_forwarded_ssl;
+
+        # Para debug
+        proxy_connect_timeout       600;
+        proxy_send_timeout          600;
+        proxy_read_timeout          600;
+        send_timeout                600;
+        # Activamos gzip para algunos mimes.
+        gzip on;
+        gzip_types text/plain text/css application/json application/javascript application/x-javascript text/javascript text/xml application/xml application/rss+xml application/atom+xml application/rdf+xml;
+        # No se que haga esto, yo quiero que deje de procesar los rewrites de wordpress.
+        break;
+    }
+
+#    location ~ \"^/media/(.*)\$\" {
+#        set \$aurora_server imk-aurora;
+#
+#        proxy_pass http://\$aurora_server:8080/aurora-ws/media/\$1;
+#
+#        # Por los momentos los medias se procesaran en aurora.
+#        proxy_set_header X-Forwarded-Host \$host:\$server_port;
+#        proxy_set_header Forwarded \"\";
+#
+#        break;
+#    }
 
     # manejo de imaginary
-    location ~ \"^/~media/(?<operation>[^\\/]+)/(?<resourcepath>[^\\?]+)(\\?(?<querystring>.*))?\$\" {
-        set \$imaginary_server imk-imaginary;
-        # Para debugger        
-        add_header X-uri \"http://\$imaginary_server:9000/\$operation?url=https://${domain}/media/\$resourcepath&\$querystring\";
-
-        # Hacemos el proxy pass.
-        proxy_pass http://\$imaginary_server:9000/\$operation?url=https://${domain}/media/\$resourcepath&\$querystring;
-        
-        break;
-    }
+#    location ~ \"^/~media/(?<operation>[^\\/]+)/(?<resourcepath>[^\\?]+)(\\?(?<querystring>.*))?\$\" {
+#        set \$imaginary_server imk-tuvoti-media;
+#        # Para debugger        
+#        add_header X-uri \"http://\$imaginary_server:9000/\$operation?url=https://${domain}/media/\$resourcepath&\$querystring\";
+#
+#        # Hacemos el proxy pass.
+#        proxy_pass http://\$imaginary_server:39876/\$operation?url=https://${domain}/media/\$resourcepath&\$querystring;
+#        
+#        break;
+#    }
 
     # Manejo de billing
     location  ^~ /billing2/ {

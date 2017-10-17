@@ -149,7 +149,7 @@ server {
         break;
     }
 
-    location ^~ /~media/ {
+    location ^~ /_media/ {
         set \$tuvoti_media_server imk-tuvoti-media;
         proxy_pass http://\$tuvoti_media_server:39876;
 
